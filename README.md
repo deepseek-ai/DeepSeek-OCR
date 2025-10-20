@@ -167,7 +167,7 @@ The current open-source model supports the following modes:
 
 We would like to thank [Vary](https://github.com/Ucas-HaoranWei/Vary/), [GOT-OCR2.0](https://github.com/Ucas-HaoranWei/GOT-OCR2.0/), [MinerU](https://github.com/opendatalab/MinerU), [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR), [OneChart](https://github.com/LingyvKong/OneChart), [Slow Perception](https://github.com/Ucas-HaoranWei/Slow-Perception) for their valuable models and ideas.
 
-We also appreciate the benchmarks: [Fox](https://github.com/ucaslcl/Fox), [OminiDocBench](https://github.com/opendatalab/OmniDocBench).
+We also appreciate the benchmarks: [Fox](https://github.com/ucaslcl/Fox), [OmniDocBench](https://github.com/opendatalab/OmniDocBench).
 
 ## Citation
 
