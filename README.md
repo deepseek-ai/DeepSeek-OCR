@@ -83,7 +83,7 @@ pip install vllm-0.8.5+cu118-cp38-abi3-manylinux1_x86_64.whl
 pip install -r requirements.txt
 pip install flash-attn==2.7.3 --no-build-isolation
 ```
-**Note:** if you want vLLM and transformers codes to run in the same environment, you don't need to worry about this installation error like: vllm 0.8.5+cu118 requires transformers>=4.51.1
+**Note:** if you want the vLLM and `transformers` code to run in the same environment, you don't need to worry about installation errors that look like: vllm 0.8.5+cu118 requires transformers>=4.51.1
 
 ## vLLM-Inference
 - VLLM:
