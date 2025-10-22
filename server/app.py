@@ -53,11 +53,11 @@ def write_config(input_path: Path, output_dir: Path, prompt: Optional[str] = Non
 def index():
     return """
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset='utf-8'>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DeepSeek-OCR - AI 文档识别服务</title>
+    <title>DeepSeek-OCR - AI Document Recognition Service</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -253,29 +253,54 @@ def index():
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+        .lang-switch {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 25px;
+            padding: 8px 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #667eea;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+        .lang-switch:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+        }
     </style>
 </head>
 <body>
+    <div class="lang-switch" id="langSwitch" onclick="toggleLanguage()">
+        <span id="langText">中文</span>
+    </div>
+    
     <div class="container">
         <h1>🚀 DeepSeek-OCR</h1>
-        <p class="subtitle">AI 驱动的智能文档识别服务</p>
+        <p class="subtitle" data-en="AI-Powered Document Recognition Service" data-zh="AI 驱动的智能文档识别服务">AI-Powered Document Recognition Service</p>
         
         <form id="uploadForm">
             <div class="upload-area" id="uploadArea">
                 <div class="upload-icon">📄</div>
-                <div>点击或拖拽 PDF 文件到此处</div>
+                <div data-en="Click or drag PDF file here" data-zh="点击或拖拽 PDF 文件到此处">Click or drag PDF file here</div>
                 <div class="file-name" id="fileName"></div>
                 <input type="file" id="fileInput" name="file" accept="application/pdf" required />
             </div>
             
             <div class="prompt-group">
-                <label for="prompt">自定义 Prompt（可选）</label>
+                <label for="prompt" data-en="Custom Prompt (Optional)" data-zh="自定义 Prompt（可选）">Custom Prompt (Optional)</label>
                 <input type="text" id="prompt" name="prompt" 
-                       placeholder="留空使用默认：<image>\\n<|grounding|>Convert the document to markdown." />
+                       placeholder="Leave empty for default: <image>\\n<|grounding|>Convert the document to markdown." 
+                       data-placeholder-en="Leave empty for default: <image>\\n<|grounding|>Convert the document to markdown."
+                       data-placeholder-zh="留空使用默认：<image>\\n<|grounding|>Convert the document to markdown."/>
             </div>
             
-            <button type="submit" class="btn" id="submitBtn">
-                开始识别
+            <button type="submit" class="btn" id="submitBtn" data-en="Start Recognition" data-zh="开始识别">
+                Start Recognition
             </button>
         </form>
         
@@ -283,21 +308,89 @@ def index():
             <div class="progress-bar">
                 <div class="progress-fill" id="progressFill"></div>
             </div>
-            <div class="status-text" id="statusText">准备中...</div>
+            <div class="status-text" id="statusText" data-en="Preparing..." data-zh="准备中...">Preparing...</div>
             <div class="log-container" id="logContainer"></div>
         </div>
         
         <div class="results" id="results">
-            <h3>✅ 识别完成！</h3>
-            <a href="#" class="download-link" id="linkMmd" download>📝 下载 Markdown 文件</a>
-            <a href="#" class="download-link" id="linkDetMmd" download>📋 下载完整标注文件</a>
-            <a href="#" class="download-link" id="linkLayouts" download>🖼️ 下载可视化 PDF</a>
-            <a href="#" class="download-link" id="linkImages" download>🎨 下载提取的图片 (ZIP)</a>
-            <a href="#" class="download-link primary" id="linkAll" download>📦 下载全部文件 (ZIP)</a>
+            <h3 data-en="✅ Recognition Complete!" data-zh="✅ 识别完成！">✅ Recognition Complete!</h3>
+            <a href="#" class="download-link" id="linkMmd" download data-en="📝 Download Markdown File" data-zh="📝 下载 Markdown 文件">📝 Download Markdown File</a>
+            <a href="#" class="download-link" id="linkDetMmd" download data-en="📋 Download Full Annotation File" data-zh="📋 下载完整标注文件">📋 Download Full Annotation File</a>
+            <a href="#" class="download-link" id="linkLayouts" download data-en="🖼️ Download Visualization PDF" data-zh="🖼️ 下载可视化 PDF">🖼️ Download Visualization PDF</a>
+            <a href="#" class="download-link" id="linkImages" download data-en="🎨 Download Extracted Images (ZIP)" data-zh="🎨 下载提取的图片 (ZIP)">🎨 Download Extracted Images (ZIP)</a>
+            <a href="#" class="download-link primary" id="linkAll" download data-en="📦 Download All Files (ZIP)" data-zh="📦 下载全部文件 (ZIP)">📦 Download All Files (ZIP)</a>
         </div>
     </div>
     
     <script>
+        // ========== Internationalization ==========
+        let currentLang = localStorage.getItem('lang') || (navigator.language.startsWith('zh') ? 'zh' : 'en');
+        
+        const translations = {
+            en: {
+                'selected': 'Selected: ',
+                'selectFile': 'Please select a PDF file',
+                'uploadFailed': 'Upload failed: ',
+                'processing': 'Processing...',
+                'error': 'Error: ',
+                'initializing': 'Initializing model...',
+                'loadingModel': 'Loading model...',
+                'loadingPDF': 'Loading PDF...',
+                'preprocessing': 'Preprocessing images...',
+                'recognizing': 'Recognizing...',
+                'complete': '✅ Processing complete!',
+                'wsError': '⚠️ WebSocket connection failed, but processing may still continue...'
+            },
+            zh: {
+                'selected': '已选择: ',
+                'selectFile': '请先选择一个 PDF 文件',
+                'uploadFailed': '上传失败: ',
+                'processing': '处理中...',
+                'error': '错误: ',
+                'initializing': '初始化模型...',
+                'loadingModel': '加载模型中...',
+                'loadingPDF': '加载 PDF...',
+                'preprocessing': '预处理图像...',
+                'recognizing': '识别中...',
+                'complete': '✅ 处理完成！',
+                'wsError': '⚠️ WebSocket 连接失败，但处理可能仍在继续...'
+            }
+        };
+        
+        function t(key) {
+            return translations[currentLang][key] || key;
+        }
+        
+        function toggleLanguage() {
+            currentLang = currentLang === 'en' ? 'zh' : 'en';
+            localStorage.setItem('lang', currentLang);
+            updateLanguage();
+        }
+        
+        function updateLanguage() {
+            document.documentElement.lang = currentLang;
+            document.getElementById('langText').textContent = currentLang === 'en' ? '中文' : 'English';
+            
+            // Update all elements with data-en and data-zh attributes
+            document.querySelectorAll('[data-en][data-zh]').forEach(el => {
+                const text = el.getAttribute(`data-${currentLang}`);
+                if (el.tagName === 'INPUT' && el.hasAttribute('placeholder')) {
+                    el.placeholder = el.getAttribute(`data-placeholder-${currentLang}`) || text;
+                } else {
+                    el.textContent = text;
+                }
+            });
+            
+            // Update file name if exists
+            if (selectedFile) {
+                fileName.textContent = t('selected') + selectedFile.name;
+            }
+        }
+        
+        // Initialize language on page load
+        document.addEventListener('DOMContentLoaded', updateLanguage);
+        
+        // ========== Main Application ==========
         const uploadArea = document.getElementById('uploadArea');
         const fileInput = document.getElementById('fileInput');
         const fileName = document.getElementById('fileName');
@@ -331,14 +424,14 @@ def index():
             if (files.length > 0 && files[0].type === 'application/pdf') {
                 fileInput.files = files;
                 selectedFile = files[0];
-                fileName.textContent = '已选择: ' + files[0].name;
+                fileName.textContent = t('selected') + files[0].name;
             }
         });
         
         fileInput.addEventListener('change', (e) => {
             if (e.target.files.length > 0) {
                 selectedFile = e.target.files[0];
-                fileName.textContent = '已选择: ' + selectedFile.name;
+                fileName.textContent = t('selected') + selectedFile.name;
             }
         });
         
@@ -347,7 +440,7 @@ def index():
             e.preventDefault();
             
             if (!selectedFile) {
-                alert('请先选择一个 PDF 文件');
+                alert(t('selectFile'));
                 return;
             }
             
@@ -355,9 +448,9 @@ def index():
             progressContainer.style.display = 'block';
             results.style.display = 'none';
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="spinner"></span> 处理中...';
+            submitBtn.innerHTML = '<span class="spinner"></span> ' + t('processing');
             progressFill.style.width = '10%';
-            statusText.textContent = '上传文件中...';
+            statusText.textContent = t('initializing');
             logContainer.innerHTML = '';
             
             const formData = new FormData();
@@ -371,7 +464,7 @@ def index():
                 });
                 
                 if (!response.ok) {
-                    throw new Error('上传失败: ' + response.statusText);
+                    throw new Error(t('uploadFailed') + response.statusText);
                 }
                 
                 const data = await response.json();
@@ -384,9 +477,9 @@ def index():
                 connectWebSocket(data.job_id, data);
                 
             } catch (error) {
-                statusText.textContent = '❌ 错误: ' + error.message;
+                statusText.textContent = '❌ ' + t('error') + error.message;
                 submitBtn.disabled = false;
-                submitBtn.textContent = '开始识别';
+                submitBtn.textContent = submitBtn.getAttribute(`data-${currentLang}`);
             }
         });
         
@@ -408,7 +501,7 @@ def index():
                     logContainer.scrollTop = logContainer.scrollHeight;
                 } else if (data.type === 'complete') {
                     progressFill.style.width = '100%';
-                    statusText.textContent = '✅ 处理完成！';
+                    statusText.textContent = t('complete');
                     
                     // Show download links
                     document.getElementById('linkMmd').href = resultData.mmd;
@@ -419,16 +512,16 @@ def index():
                     results.style.display = 'block';
                     
                     submitBtn.disabled = false;
-                    submitBtn.textContent = '开始识别';
+                    submitBtn.textContent = submitBtn.getAttribute(`data-${currentLang}`);
                 } else if (data.type === 'error') {
-                    statusText.textContent = '❌ 错误: ' + data.message;
+                    statusText.textContent = '❌ ' + t('error') + data.message;
                     submitBtn.disabled = false;
-                    submitBtn.textContent = '开始识别';
+                    submitBtn.textContent = submitBtn.getAttribute(`data-${currentLang}`);
                 }
             };
             
             ws.onerror = () => {
-                statusText.textContent = '⚠️ WebSocket 连接失败，但处理可能仍在继续...';
+                statusText.textContent = t('wsError');
             };
             
             ws.onclose = () => {
