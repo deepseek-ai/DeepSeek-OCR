@@ -7,39 +7,39 @@ from PIL import Image, ImageDraw
 import re
 from typing import Tuple, Optional, Dict, Any
 
-# --- 常量和配置 ---
+# --- Constants and Configuration ---
 MODEL_NAME = "deepseek-ai/DeepSeek-OCR"
 MODEL_SIZE_CONFIGS = {
     "Tiny": {"base_size": 512, "image_size": 512, "crop_mode": False},
     "Small": {"base_size": 640, "image_size": 640, "crop_mode": False},
     "Base": {"base_size": 1024, "image_size": 1024, "crop_mode": False},
     "Large": {"base_size": 1280, "image_size": 1280, "crop_mode": False},
-    "Gundam (推荐)": {"base_size": 1024, "image_size": 640, "crop_mode": True},
+    "Gundam (Recommended)": {"base_size": 1024, "image_size": 640, "crop_mode": True},
 }
 
 TASK_PROMPTS = {
-    "📝 自由OCR": "<image>\n自由OCR.",
-    "📄 转换为Markdown": "<image>\n<|grounding|>将文档转换为markdown.",
-    "📈 解析图表": "<image>\n解析图表.",
+    "📝 Free OCR": "<image>\nFree OCR.",
+    "📄 Convert to Markdown": "<image>\n<|grounding|>Convert document to markdown.",
+    "📈 Parse Chart": "<image>\nParse chart.",
 }
 
-DEFAULT_MODEL_SIZE = "Gundam (推荐)"
-DEFAULT_TASK_TYPE = "📄 转换为Markdown"
+DEFAULT_MODEL_SIZE = "Gundam (Recommended)"
+DEFAULT_TASK_TYPE = "📄 Convert to Markdown"
 BOUNDING_BOX_PATTERN = re.compile(r"<\|det\|>\[\[(\d+),\s*(\d+),\s*(\d+),\s*(\d+)\]\]<\|/det\|>")
 BOUNDING_BOX_COLOR = "red"
 BOUNDING_BOX_WIDTH = 3
 NORMALIZATION_FACTOR = 1000
 
-# --- 全局变量 ---
+# --- Global Variables ---
 model = None
 tokenizer = None
 model_gpu = None
 
 
 def load_model_and_tokenizer() -> None:
-    """启动时加载DeepSeek-OCR模型和分词器。"""
+    """Load DeepSeek-OCR model and tokenizer at startup."""
     global model, tokenizer
-    print("正在加载模型和分词器...")
+    print("Loading model and tokenizer...")
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, trust_remote_code=True)
     model = AutoModel.from_pretrained(
         MODEL_NAME,
@@ -48,28 +48,28 @@ def load_model_and_tokenizer() -> None:
         use_safetensors=True,
     )
     model = model.eval()
-    print("✅ 模型加载成功。")
+    print("✅ Model loaded successfully.")
 
 
 def move_model_to_gpu() -> None:
-    """如果模型尚未在GPU上，则将其移动到GPU。"""
+    """Move model to GPU if it's not already there."""
     global model_gpu
     if model_gpu is None:
-        print("🚀 正在将模型移动到GPU...")
-        # 使用非阻塞传输以获得更好的性能
+        print("🚀 Moving model to GPU...")
+        # Use non-blocking transfer for better performance
         model_gpu = model.cuda().to(torch.bfloat16, non_blocking=True)
-        print("✅ 模型已在GPU上。")
+        print("✅ Model is now on GPU.")
 
 
 def find_result_image(path: str) -> Optional[Image.Image]:
     """
-    在指定路径中查找预生成的结果图像。
+    Find pre-generated result image in the specified path.
     
     Args:
-        path: 搜索结果图像的目录路径
+        path: Directory path to search for result image
         
     Returns:
-        如果找到则返回PIL图像，否则返回None
+        PIL image if found, otherwise None
     """
     for filename in os.listdir(path):
         if "grounding" in filename or "result" in filename:
@@ -77,69 +77,69 @@ def find_result_image(path: str) -> Optional[Image.Image]:
                 image_path = os.path.join(path, filename)
                 return Image.open(image_path)
             except Exception as e:
-                print(f"打开结果图像 {filename} 时出错: {e}")
+                print(f"Error opening result image {filename}: {e}")
     return None
 
 
 def build_prompt(task_type: str, ref_text: str) -> str:
     """
-    根据任务类型和参考文本构建适当的提示。
+    Build appropriate prompt based on task type and reference text.
     
     Args:
-        task_type: OCR任务类型
-        ref_text: 定位任务的参考文本
+        task_type: OCR task type
+        ref_text: Reference text for localization task
         
     Returns:
-        格式化的提示字符串
+        Formatted prompt string
     """
-    if task_type == "🔍 通过参考定位对象":
+    if task_type == "🔍 Locate Object by Reference":
         if not ref_text or ref_text.strip() == "":
-            raise gr.Error("对于'定位'任务，您必须提供要查找的参考文本！")
-        return f"<image>\n在图像中定位 <|ref|>{ref_text.strip()}<|/ref|>."
+            raise gr.Error("For 'localization' task, you must provide reference text to find!")
+        return f"<image>\nLocate <|ref|>{ref_text.strip()}<|/ref|> in the image."
     
-    return TASK_PROMPTS.get(task_type, TASK_PROMPTS["📝 自由OCR"])
+    return TASK_PROMPTS.get(task_type, TASK_PROMPTS["📝 Free OCR"])
 
 
 def extract_and_draw_bounding_boxes(text_result: str, original_image: Image.Image) -> Optional[Image.Image]:
     """
-    从文本结果中提取边界框坐标并在图像上绘制它们。
+    Extract bounding box coordinates from text result and draw them on the image.
     
     Args:
-        text_result: 包含边界框坐标的OCR文本结果
-        original_image: 要绘制的原始PIL图像
+        text_result: OCR text result containing bounding box coordinates
+        original_image: Original PIL image to draw on
         
     Returns:
-        绘制了边界框的PIL图像，如果没有找到坐标则返回None
+        PIL image with bounding boxes drawn, or None if no coordinates found
     """
-    # 直接使用迭代器以避免不必要地创建列表
+    # Use iterator directly to avoid unnecessary list creation
     matches = list(BOUNDING_BOX_PATTERN.finditer(text_result))
     
     if not matches:
         return None
     
-    print(f"✅ 找到 {len(matches)} 个边界框。正在原始图像上绘制。")
+    print(f"✅ Found {len(matches)} bounding boxes. Drawing on original image.")
     
-    # 创建原始图像的副本以进行绘制
+    # Create a copy of the original image for drawing
     image_with_bboxes = original_image.copy()
     draw = ImageDraw.Draw(image_with_bboxes)
     w, h = original_image.size
     
-    # 预先计算缩放因子以获得更好的性能
+    # Pre-calculate scale factors for better performance
     w_scale = w / NORMALIZATION_FACTOR
     h_scale = h / NORMALIZATION_FACTOR
     
     for match in matches:
-        # 更有效地提取和缩放坐标
+        # Extract and scale coordinates more efficiently
         coords = tuple(int(c) for c in match.groups())
         x1_norm, y1_norm, x2_norm, y2_norm = coords
         
-        # 使用预先计算的因子缩放归一化坐标
+        # Scale normalized coordinates using pre-calculated factors
         x1 = int(x1_norm * w_scale)
         y1 = int(y1_norm * h_scale)
         x2 = int(x2_norm * w_scale)
         y2 = int(y2_norm * h_scale)
         
-        # 绘制矩形
+        # Draw rectangle
         draw.rectangle([x1, y1, x2, y2], outline=BOUNDING_BOX_COLOR, width=BOUNDING_BOX_WIDTH)
     
     return image_with_bboxes
@@ -147,18 +147,18 @@ def extract_and_draw_bounding_boxes(text_result: str, original_image: Image.Imag
 
 def run_inference(prompt: str, image_path: str, output_path: str, config: Dict[str, Any]) -> str:
     """
-    使用给定参数运行模型推理。
+    Run model inference with given parameters.
     
     Args:
-        prompt: 模型的格式化提示
-        image_path: 输入图像的路径
-        output_path: 输出文件的目录路径
-        config: 模型配置字典
+        prompt: Formatted prompt for the model
+        image_path: Path to input image
+        output_path: Directory path for output files
+        config: Model configuration dictionary
         
     Returns:
-        模型的文本结果
+        Text result from the model
     """
-    print(f"🏃 使用提示运行推理: {prompt}")
+    print(f"🏃 Running inference with prompt: {prompt}")
     text_result = model_gpu.infer(
         tokenizer,
         prompt=prompt,
@@ -171,50 +171,50 @@ def run_inference(prompt: str, image_path: str, output_path: str, config: Dict[s
         test_compress=True,
         eval_mode=True,
     )
-    print(f"====\n📄 文本结果: {text_result}\n====")
+    print(f"====\n📄 Text Result: {text_result}\n====")
     return text_result
 
 
 def process_ocr_task(image: Optional[Image.Image], model_size: str, task_type: str, ref_text: str) -> Tuple[str, Optional[Image.Image]]:
     """
-    使用DeepSeek-OCR处理图像以支持所有任务。
+    Process image with DeepSeek-OCR to support all tasks.
     
     Args:
-        image: 输入PIL图像
-        model_size: 模型大小配置
-        task_type: OCR任务类型
-        ref_text: 定位任务的参考文本
+        image: Input PIL image
+        model_size: Model size configuration
+        task_type: OCR task type
+        ref_text: Reference text for localization task
         
     Returns:
-        (text_result, result_image) 元组
+        (text_result, result_image) tuple
     """
     if image is None:
-        return "请先上传图像。", None
+        return "Please upload an image first.", None
     
-    # 确保模型在GPU上
+    # Ensure model is on GPU
     move_model_to_gpu()
     
-    # 根据任务类型构建提示
+    # Build prompt based on task type
     prompt = build_prompt(task_type, ref_text)
     
-    # 获取模型配置
+    # Get model configuration
     config = MODEL_SIZE_CONFIGS.get(model_size, MODEL_SIZE_CONFIGS[DEFAULT_MODEL_SIZE])
     
     with tempfile.TemporaryDirectory() as output_path:
-        # 使用优化格式保存临时图像
+        # Save temporary image with optimized format
         temp_image_path = os.path.join(output_path, "temp_image.png")
-        # 使用optimize=True以获得更好的压缩
+        # Use optimize=True for better compression
         image.save(temp_image_path, optimize=True)
         
-        # 运行推理
+        # Run inference
         text_result = run_inference(prompt, temp_image_path, output_path, config)
         
-        # 尝试从文本结果中提取并绘制边界框
+        # Try to extract and draw bounding boxes from text result
         result_image = extract_and_draw_bounding_boxes(text_result, image)
         
-        # 如果没有找到边界框，则回退到预生成的结果图像
+        # If no bounding boxes found, fall back to pre-generated result image
         if result_image is None:
-            print("⚠️ 在文本结果中未找到边界框坐标。回退到搜索结果图像文件。")
+            print("⚠️ No bounding box coordinates found in text result. Falling back to searching for result image file.")
             result_image = find_result_image(output_path)
         
         return text_result, result_image
@@ -222,65 +222,65 @@ def process_ocr_task(image: Optional[Image.Image], model_size: str, task_type: s
 
 def toggle_ref_text_visibility(task: str) -> gr.Textbox:
     """
-    根据任务类型切换参考文本输入的可见性。
+    Toggle reference text input visibility based on task type.
     
     Args:
-        task: 选定的任务类型
+        task: Selected task type
         
     Returns:
-        更新的Textbox组件
+        Updated Textbox component
     """
-    return gr.Textbox(visible=True) if task == "🔍 通过参考定位对象" else gr.Textbox(visible=False)
+    return gr.Textbox(visible=True) if task == "🔍 Locate Object by Reference" else gr.Textbox(visible=False)
 
 
 def create_ui() -> gr.Blocks:
     """
-    创建和配置Gradio用户界面。
+    Create and configure Gradio user interface.
     
     Returns:
-        配置好的Gradio Blocks界面
+        Configured Gradio Blocks interface
     """
     with gr.Blocks(title="🐳DeepSeek-OCR🐳", theme=gr.themes.Soft()) as demo:
         gr.Markdown(
             """
-            # 🐳 DeepSeek-OCR 完整演示 🐳
-            **💡 使用方法:**
-            1.  使用上传框**上传图像**。
-            2.  选择一个**分辨率**。对于大多数文档，推荐使用`Gundam`。
-            3.  选择一个**任务类型**:
-                - **📝 自由OCR**: 从图像中提取原始文本。
-                - **📄 转换为Markdown**: 将文档转换为Markdown，保留结构。
-                - **📈 解析图表**: 从图表和图形中提取结构化数据。
-                - **🔍 通过参考定位对象**: 查找特定对象/文本。
-            4. 如果这个工具有帮助，请给它点个赞！ 🙏 ❤️
+            # 🐳 DeepSeek-OCR Complete Demo 🐳
+            **💡 How to use:**
+            1.  **Upload an image** using the upload box.
+            2.  Select a **resolution**. `Gundam` is recommended for most documents.
+            3.  Select a **task type**:
+                - **📝 Free OCR**: Extract raw text from images.
+                - **📄 Convert to Markdown**: Convert documents to Markdown while preserving structure.
+                - **📈 Parse Chart**: Extract structured data from charts and graphs.
+                - **🔍 Locate Object by Reference**: Find specific objects/text.
+            4. If this tool is helpful, please give it a thumbs up! 🙏 ❤️
             """
         )
 
         with gr.Row():
             with gr.Column(scale=1):
-                image_input = gr.Image(type="pil", label="🖼️ 上传图像", sources=["upload", "clipboard"])
+                image_input = gr.Image(type="pil", label="🖼️ Upload Image", sources=["upload", "clipboard"])
                 model_size = gr.Dropdown(
                     choices=list(MODEL_SIZE_CONFIGS.keys()),
                     value=DEFAULT_MODEL_SIZE,
-                    label="⚙️ 分辨率大小"
+                    label="⚙️ Resolution Size"
                 )
                 task_type = gr.Dropdown(
-                    choices=list(TASK_PROMPTS.keys()) + ["🔍 通过参考定位对象"],
+                    choices=list(TASK_PROMPTS.keys()) + ["🔍 Locate Object by Reference"],
                     value=DEFAULT_TASK_TYPE,
-                    label="🚀 任务类型"
+                    label="🚀 Task Type"
                 )
                 ref_text_input = gr.Textbox(
-                    label="📝 参考文本（用于定位任务）",
-                    placeholder="例如：老师、20-10、一辆红色汽车...",
+                    label="📝 Reference Text (for localization task)",
+                    placeholder="e.g.: teacher, 20-10, a red car...",
                     visible=False
                 )
-                submit_btn = gr.Button("处理图像", variant="primary")
+                submit_btn = gr.Button("Process Image", variant="primary")
 
             with gr.Column(scale=2):
-                output_text = gr.Textbox(label="📄 文本结果", lines=15, show_copy_button=True)
-                output_image = gr.Image(label="🖼️ 图像结果（如果有）", type="pil")
+                output_text = gr.Textbox(label="📄 Text Result", lines=15, show_copy_button=True)
+                output_image = gr.Image(label="🖼️ Image Result (if any)", type="pil")
 
-        # UI交互逻辑
+        # UI interaction logic
         task_type.change(fn=toggle_ref_text_visibility, inputs=task_type, outputs=ref_text_input)
         submit_btn.click(
             fn=process_ocr_task,
@@ -288,7 +288,7 @@ def create_ui() -> gr.Blocks:
             outputs=[output_text, output_image]
         )
 
-        # 示例图像和任务
+        # Example images and tasks
         gr.Examples(
             examples=[
                 ["doc_markdown.png", "will upload", "📄 will upload", ""],
@@ -296,22 +296,22 @@ def create_ui() -> gr.Blocks:
             inputs=[image_input, model_size, task_type, ref_text_input],
             outputs=[output_text, output_image],
             fn=process_ocr_task,
-            cache_examples=False,  # 禁用缓存以确保示例每次都运行
+            cache_examples=False,  # Disable cache to ensure examples run every time
         )
     
     return demo
 
 
 def main() -> None:
-    """初始化和启动应用程序的主函数。"""
-    # 启动时加载模型
+    """Main function to initialize and start the application."""
+    # Load model at startup
     load_model_and_tokenizer()
     
-    # 如果示例目录不存在则创建
+    # Create examples directory if it doesn't exist
     if not os.path.exists("examples"):
         os.makedirs("examples")
     
-    # 创建并启动UI
+    # Create and launch UI
     demo = create_ui()
     demo.queue(max_size=20).launch(share=True)
 
