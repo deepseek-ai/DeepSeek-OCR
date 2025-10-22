@@ -7,3 +7,7 @@ easydict
 addict 
 Pillow
 numpy
+fastapi
+uvicorn[standard]
+python-multipart
+tqdm

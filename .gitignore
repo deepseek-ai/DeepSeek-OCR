@@ -1,0 +1,27 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Server runtime data
+server/uploads/
+server/outputs/
+Output/
+
+# OS
+.DS_Store
+Thumbs.db
+
