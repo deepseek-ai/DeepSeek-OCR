@@ -1,0 +1,16 @@
+torch==2.6.0
+transformers==4.46.3
+tokenizers>=0.20.3
+gradio
+einops
+addict 
+easydict
+gradio>=4.0.0
+spaces>=0.20.0
+Pillow>=10.0.0
+safetensors>=0.4.0
+accelerate>=0.24.0
+sentencepiece>=0.1.99
+protobuf>=3.20.0
+torchvision
+flash-attn
