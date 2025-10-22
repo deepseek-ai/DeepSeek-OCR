@@ -1,0 +1,11 @@
+{
+  // Recommended VSCode extensions for DeepSeek-OCR development
+  "recommendations": [
+    "ms-python.python",           // Python language support
+    "ms-python.vscode-pylance",   // Python language server
+    "ms-python.debugpy",          // Python debugger
+    "ms-toolsai.jupyter",         // Jupyter notebook support (optional)
+    "yzhang.markdown-all-in-one", // Markdown editing
+    "tomoki1207.pdf"              // PDF preview
+  ]
+}

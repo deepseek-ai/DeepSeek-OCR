@@ -1,0 +1,40 @@
+{
+  // VSCode debug configurations for DeepSeek-OCR
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python: Current File",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${file}",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      }
+    },
+    {
+      "name": "macOS: Parse PDF",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/example_macos_pdf_parse.py",
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      }
+    },
+    {
+      "name": "Transformers: Run OCR",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/DeepSeek-OCR-master/DeepSeek-OCR-hf/run_dpsk_ocr.py",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}/DeepSeek-OCR-master/DeepSeek-OCR-hf",
+      "justMyCode": false,
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      }
+    }
+  ]
+}

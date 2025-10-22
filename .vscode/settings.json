@@ -1,0 +1,46 @@
+{
+  // Python configuration for DeepSeek-OCR on macOS
+  "python.defaultInterpreterPath": "${workspaceFolder}/venv/bin/python",
+
+  // Formatting
+  "python.formatting.provider": "black",
+  "[python]": {
+    "editor.formatOnSave": false,
+    "editor.defaultFormatter": "ms-python.python"
+  },
+
+  // Linting
+  "python.linting.enabled": true,
+  "python.linting.pylintEnabled": false,
+  "python.linting.flake8Enabled": false,
+
+  // Terminal
+  "terminal.integrated.env.osx": {
+    "PYTHONPATH": "${workspaceFolder}"
+  },
+
+  // File associations
+  "files.associations": {
+    "*.mmd": "markdown"
+  },
+
+  // Exclude from file watcher (performance)
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/venv/**": true,
+    "**/__pycache__/**": true,
+    "**/.pytest_cache/**": true,
+    "**/output/**": true
+  },
+
+  // Search exclusions
+  "search.exclude": {
+    "**/venv": true,
+    "**/__pycache__": true,
+    "**/output": true
+  },
+
+  // Jupyter
+  "jupyter.notebookFileRoot": "${workspaceFolder}"
+}
