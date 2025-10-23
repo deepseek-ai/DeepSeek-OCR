@@ -3,48 +3,41 @@
 <!-- markdownlint-disable no-duplicate-header -->
 
 <div align="center">
-  <b>English</b> | <a href="README.zh-TW.md">繁體中文</a> | <a href="README.es.md">Español</a>
+  <a href="README.md">English</a> | <a href="README.zh-TW.md">繁體中文</a> | <b>Español</b>
 </div>
-
 
 <div align="center">
   <img src="assets/logo.svg" width="60%" alt="DeepSeek AI" />
 </div>
 
-
 <hr>
 <div align="center">
   <a href="https://www.deepseek.com/" target="_blank">
-    <img alt="Homepage" src="assets/badge.svg" />
+    <img alt="Página de inicio" src="assets/badge.svg" />
   </a>
   <a href="https://huggingface.co/deepseek-ai/DeepSeek-OCR" target="_blank">
     <img alt="Hugging Face" src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-DeepSeek%20AI-ffc107?color=ffc107&logoColor=white" />
   </a>
-
 </div>
 
 <div align="center">
-
   <a href="https://discord.gg/Tc7c45Zzu5" target="_blank">
     <img alt="Discord" src="https://img.shields.io/badge/Discord-DeepSeek%20AI-7289da?logo=discord&logoColor=white&color=7289da" />
   </a>
   <a href="https://twitter.com/deepseek_ai" target="_blank">
     <img alt="Twitter Follow" src="https://img.shields.io/badge/Twitter-deepseek_ai-white?logo=x&logoColor=white" />
   </a>
-
 </div>
 
-
-
 <p align="center">
-  <a href="https://huggingface.co/deepseek-ai/DeepSeek-OCR"><b>📥 Model Download</b></a> |
-  <a href="https://github.com/deepseek-ai/DeepSeek-OCR/blob/main/DeepSeek_OCR_paper.pdf"><b>📄 Paper Link</b></a> |
-  <a href="https://arxiv.org/abs/2510.18234"><b>📄 Arxiv Paper Link</b></a> |
+  <a href="https://huggingface.co/deepseek-ai/DeepSeek-OCR"><b>📥 Descarga del modelo</b></a> |
+  <a href="https://github.com/deepseek-ai/DeepSeek-OCR/blob/main/DeepSeek_OCR_paper.pdf"><b>📄 Enlace al documento</b></a> |
+  <a href="https://arxiv.org/abs/2510.18234"><b>📄 Enlace al documento de Arxiv</b></a> |
 </p>
 
 <h2>
 <p align="center">
-  <a href="">DeepSeek-OCR: Contexts Optical Compression</a>
+  <a href="">DeepSeek-OCR: Compresión óptica de contextos</a>
 </p>
 </h2>
 
@@ -52,25 +45,21 @@
 <img src="assets/fig1.png" style="width: 1000px" align=center>
 </p>
 <p align="center">
-<a href="">Explore the boundaries of visual-text compression.</a>       
+<a href="">Explora los límites de la compresión visual-texto.</a>
 </p>
 
-## Release
-- [2025/10/23]🚀🚀🚀 DeepSeek-OCR is now officially supported in upstream [vLLM](https://docs.vllm.ai/projects/recipes/en/latest/DeepSeek/DeepSeek-OCR.html#installing-vllm). Thanks to the [vLLM](https://github.com/vllm-project/vllm) team for their help.
-- [2025/10/20]🚀🚀🚀 We release DeepSeek-OCR, a model to investigate the role of vision encoders from an LLM-centric viewpoint.
+## Lanzamiento
+- [2025/10/23]🚀🚀🚀 DeepSeek-OCR ahora es oficialmente compatible con [vLLM](https://docs.vllm.ai/projects/recipes/en/latest/DeepSeek/DeepSeek-OCR.html#installing-vllm) ascendente. Gracias al equipo de [vLLM](https://github.com/vllm-project/vllm) por su ayuda.
+- [2025/10/20]🚀🚀🚀 Lanzamos DeepSeek-OCR, un modelo para investigar el papel de los codificadores de visión desde un punto de vista centrado en LLM.
 
-## Contents
-- [Install](#install)
-- [vLLM Inference](#vllm-inference)
-- [Transformers Inference](#transformers-inference)
-  
+## Contenido
+- [Instalación](#instalación)
+- [Inferencia vLLM](#inferencia-vllm)
+- [Inferencia de transformadores](#inferencia-de-transformadores)
 
-
-
-
-## Install
->Our environment is cuda11.8+torch2.6.0.
-1. Clone this repository and navigate to the DeepSeek-OCR folder
+## Instalación
+>Nuestro entorno es cuda11.8+torch2.6.0.
+1. Clona este repositorio y navega a la carpeta DeepSeek-OCR
 ```bash
 git clone https://github.com/deepseek-ai/DeepSeek-OCR.git
 ```
@@ -79,42 +68,42 @@ git clone https://github.com/deepseek-ai/DeepSeek-OCR.git
 conda create -n deepseek-ocr python=3.12.9 -y
 conda activate deepseek-ocr
 ```
-3. Packages
+3. Paquetes
 
-- download the vllm-0.8.5 [whl](https://github.com/vllm-project/vllm/releases/tag/v0.8.5) 
+- descargar el vllm-0.8.5 [whl](https://github.com/vllm-project/vllm/releases/tag/v0.8.5)
 ```Shell
 pip install torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cu118
 pip install vllm-0.8.5+cu118-cp38-abi3-manylinux1_x86_64.whl
 pip install -r requirements.txt
 pip install flash-attn==2.7.3 --no-build-isolation
 ```
-**Note:** if you want vLLM and transformers codes to run in the same environment, you don't need to worry about this installation error like: vllm 0.8.5+cu118 requires transformers>=4.51.1
+**Nota:** si desea que los códigos vLLM y transformadores se ejecuten en el mismo entorno, no necesita preocuparse por este error de instalación como: vllm 0.8.5+cu118 requiere transformadores>=4.51.1
 
-## vLLM-Inference
+## Inferencia-vLLM
 - VLLM:
->**Note:** change the INPUT_PATH/OUTPUT_PATH and other settings in the DeepSeek-OCR-master/DeepSeek-OCR-vllm/config.py
+>**Nota:** cambie INPUT_PATH/OUTPUT_PATH y otras configuraciones en DeepSeek-OCR-master/DeepSeek-OCR-vllm/config.py
 ```Shell
 cd DeepSeek-OCR-master/DeepSeek-OCR-vllm
 ```
-1. image: streaming output
+1. imagen: salida de transmisión
 ```Shell
 python run_dpsk_ocr_image.py
 ```
-2. pdf: concurrency ~2500tokens/s(an A100-40G)
+2. pdf: concurrencia ~2500tokens/s (un A100-40G)
 ```Shell
 python run_dpsk_ocr_pdf.py
 ```
-3. batch eval for benchmarks
+3. evaluación por lotes para puntos de referencia
 ```Shell
 python run_dpsk_ocr_eval_batch.py
 ```
 
-**[2025/10/23] The version of upstream [vLLM](https://docs.vllm.ai/projects/recipes/en/latest/DeepSeek/DeepSeek-OCR.html#installing-vllm):**
+**[2025/10/23] La versión de [vLLM](https://docs.vllm.ai/projects/recipes/en/latest/DeepSeek/DeepSeek-OCR.html#installing-vllm) ascendente:**
 
 ```shell
 uv venv
 source .venv/bin/activate
-# Until v0.11.1 release, you need to install vLLM from nightly build
+# Hasta el lanzamiento de v0.11.1, debe instalar vLLM desde la compilación nocturna
 uv pip install -U vllm --pre --extra-index-url https://wheels.vllm.ai/nightly
 ```
 
@@ -123,7 +112,7 @@ from vllm import LLM, SamplingParams
 from vllm.model_executor.models.deepseek_ocr import NGramPerReqLogitsProcessor
 from PIL import Image
 
-# Create model instance
+# Crear instancia del modelo
 llm = LLM(
     model="deepseek-ai/DeepSeek-OCR",
     enable_prefix_caching=False,
@@ -131,7 +120,7 @@ llm = LLM(
     logits_processors=[NGramPerReqLogitsProcessor]
 )
 
-# Prepare batched input with your image file
+# Preparar entrada por lotes con su archivo de imagen
 image_1 = Image.open("path/to/your/image_1.png").convert("RGB")
 image_2 = Image.open("path/to/your/image_2.png").convert("RGB")
 prompt = "<image>\nFree OCR."
@@ -150,23 +139,23 @@ model_input = [
 sampling_param = SamplingParams(
             temperature=0.0,
             max_tokens=8192,
-            # ngram logit processor args
+            # argumentos del procesador de logits ngram
             extra_args=dict(
                 ngram_size=30,
                 window_size=90,
-                whitelist_token_ids={128821, 128822},  # whitelist: <td>, </td>
+                whitelist_token_ids={128821, 128822},  # lista blanca: <td>, </td>
             ),
             skip_special_tokens=False,
         )
-# Generate output
+# Generar salida
 model_outputs = llm.generate(model_input, sampling_param)
 
-# Print output
+# Imprimir salida
 for output in model_outputs:
     print(output.outputs[0].text)
 ```
-## Transformers-Inference
-- Transformers
+## Inferencia-de-transformadores
+- Transformadores
 ```python
 from transformers import AutoModel, AutoTokenizer
 import torch
@@ -179,40 +168,39 @@ model = AutoModel.from_pretrained(model_name, _attn_implementation='flash_attent
 model = model.eval().cuda().to(torch.bfloat16)
 
 # prompt = "<image>\nFree OCR. "
-prompt = "<image>\n<|grounding|>Convert the document to markdown. "
+prompt = "<image>\n<|grounding|>Convierte el documento a markdown. "
 image_file = 'your_image.jpg'
 output_path = 'your/output/dir'
 
 res = model.infer(tokenizer, prompt=prompt, image_file=image_file, output_path = output_path, base_size = 1024, image_size = 640, crop_mode=True, save_results = True, test_compress = True)
 ```
-or you can
+o puedes
 ```Shell
 cd DeepSeek-OCR-master/DeepSeek-OCR-hf
 python run_dpsk_ocr.py
 ```
-## Support-Modes
-The current open-source model supports the following modes:
-- Native resolution:
-  - Tiny: 512×512 （64 vision tokens）✅
-  - Small: 640×640 （100 vision tokens）✅
-  - Base: 1024×1024 （256 vision tokens）✅
-  - Large: 1280×1280 （400 vision tokens）✅
-- Dynamic resolution
+## Modos de soporte
+El modelo de código abierto actual admite los siguientes modos:
+- Resolución nativa:
+  - Pequeño: 512×512 （64 tokens de visión）✅
+  - Pequeño: 640×640 （100 tokens de visión）✅
+  - Base: 1024×1024 （256 tokens de visión）✅
+  - Grande: 1280×1280 （400 tokens de visión）✅
+- Resolución dinámica
   - Gundam: n×640×640 + 1×1024×1024 ✅
 
-## Prompts examples
+## Ejemplos de indicaciones
 ```python
-# document: <image>\n<|grounding|>Convert the document to markdown.
-# other image: <image>\n<|grounding|>OCR this image.
-# without layouts: <image>\nFree OCR.
-# figures in document: <image>\nParse the figure.
-# general: <image>\nDescribe this image in detail.
-# rec: <image>\nLocate <|ref|>xxxx<|/ref|> in the image.
+# documento: <image>\n<|grounding|>Convierte el documento a markdown.
+# otra imagen: <image>\n<|grounding|>OCR esta imagen.
+# sin diseños: <image>\nFree OCR.
+# figuras en el documento: <image>\nAnaliza la figura.
+# general: <image>\nDescribe esta imagen en detalle.
+# rec: <image>\nUbica <|ref|>xxxx<|/ref|> en la imagen.
 # '先天下之忧而忧'
 ```
 
-
-## Visualizations
+## Visualizaciones
 <table>
 <tr>
 <td><img src="assets/show1.jpg" style="width: 500px"></td>
@@ -224,14 +212,13 @@ The current open-source model supports the following modes:
 </tr>
 </table>
 
+## Agradecimiento
 
-## Acknowledgement
+Nos gustaría agradecer a [Vary](https://github.com/Ucas-HaoranWei/Vary/), [GOT-OCR2.0](https://github.com/Ucas-HaoranWei/GOT-OCR2.0/), [MinerU](https://github.com/opendatalab/MinerU), [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR), [OneChart](https://github.com/LingyvKong/OneChart), [Slow Perception](https://github.com/Ucas-HaoranWei/Slow-Perception) por sus valiosos modelos e ideas.
 
-We would like to thank [Vary](https://github.com/Ucas-HaoranWei/Vary/), [GOT-OCR2.0](https://github.com/Ucas-HaoranWei/GOT-OCR2.0/), [MinerU](https://github.com/opendatalab/MinerU), [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR), [OneChart](https://github.com/LingyvKong/OneChart), [Slow Perception](https://github.com/Ucas-HaoranWei/Slow-Perception) for their valuable models and ideas.
+También apreciamos los puntos de referencia: [Fox](https://github.com/ucaslcl/Fox), [OminiDocBench](https://github.com/opendatalab/OmniDocBench).
 
-We also appreciate the benchmarks: [Fox](https://github.com/ucaslcl/Fox), [OminiDocBench](https://github.com/opendatalab/OmniDocBench).
-
-## Citation
+## Citación
 
 ```bibtex
 @article{wei2024deepseek-ocr,
@@ -240,3 +227,4 @@ We also appreciate the benchmarks: [Fox](https://github.com/ucaslcl/Fox), [Omini
   journal={arXiv preprint arXiv:2510.18234},
   year={2025}
 }
+```
