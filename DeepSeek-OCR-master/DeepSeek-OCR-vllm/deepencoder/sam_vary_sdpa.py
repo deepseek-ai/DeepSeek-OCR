@@ -52,7 +52,7 @@ class MLPBlock(nn.Module):
     Forward Args:
         x (torch.Tensor): Input tensor of shape [B, N, embedding_dim].
 
-    Returns:
+    def forward => Returns:
         torch.Tensor: Output tensor of same shape [B, N, embedding_dim].
     """
     def __init__(
