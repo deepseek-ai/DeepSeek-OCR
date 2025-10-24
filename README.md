@@ -1,4 +1,4 @@
-<!-- markdownlint-disable first-line-h1 -->
+*<!-- markdownlint-disable first-line-h1 -->
 <!-- markdownlint-disable html -->
 <!-- markdownlint-disable no-duplicate-header -->
 
@@ -236,3 +236,6 @@ We also appreciate the benchmarks: [Fox](https://github.com/ucaslcl/Fox), [Omini
   journal={arXiv preprint arXiv:2510.18234},
   year={2025}
 }
+
+download conda
+https://www.anaconda.com/download
