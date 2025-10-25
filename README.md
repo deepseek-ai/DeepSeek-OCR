@@ -57,6 +57,7 @@
 
 ## Contents
 - [Install](#install)
+- [Gradio Web Interface](#gradio-web-interface) 🆕
 - [vLLM Inference](#vllm-inference)
 - [Transformers Inference](#transformers-inference)
   
@@ -85,6 +86,58 @@ pip install -r requirements.txt
 pip install flash-attn==2.7.3 --no-build-isolation
 ```
 **Note:** if you want vLLM and transformers codes to run in the same environment, you don't need to worry about this installation error like: vllm 0.8.5+cu118 requires transformers>=4.51.1
+
+## Gradio Web Interface
+
+We provide a user-friendly web interface powered by Gradio for easy OCR operations.
+
+### Features
+- 🌐 **Bilingual Support**: Switch between Chinese (中文) and English
+- 🎯 **Multiple Tasks**: Document to Markdown, OCR with Grounding, Plain Text OCR, Figure Parsing, Image Description, Text/Object Localization
+- 🖼️ **Visual Grounding**: Automatic bounding box drawing and image cropping
+- 📊 **Rich Output**: Markdown with embedded images, annotated images, extracted regions
+- ⚙️ **Advanced Settings**: Customizable model size presets, dynamic cropping, GPU memory control
+
+### Quick Start
+
+1. **Install Gradio dependencies** (if not already installed):
+```bash
+pip install gradio
+```
+
+2. **Launch the web interface**:
+```bash
+python gradio_app.py
+```
+
+3. **Access the interface**:
+Open your browser and navigate to:
+```
+http://localhost:7860
+```
+
+### Usage
+
+1. **Upload an image** using the file upload area
+2. **Select a task type** from the dropdown menu:
+   - **Document to Markdown**: Convert documents with structure preservation
+   - **OCR with Grounding**: Extract text with bounding boxes
+   - **Plain Text OCR**: Simple text extraction without layout
+   - **Figure Parsing**: Analyze charts and diagrams
+   - **Image Description**: Generate detailed image descriptions
+   - **Text Localization**: Locate text regions
+   - **Object Localization**: Locate specific objects (enter object name in custom prompt)
+   - **Custom**: Use your own custom prompts
+3. **Configure advanced settings** (optional):
+   - Adjust model size presets (Tiny, Small, Base, Large, Gundam)
+   - Enable/disable dynamic cropping
+   - Set GPU memory utilization
+4. **Click "开始处理" (Process)** button
+5. **View results** in multiple tabs:
+   - **Markdown Output**: Clean text with embedded images
+   - **Annotated Image**: Image with bounding boxes
+   - **Extracted Images**: Cropped regions from the document
+   - **Raw Output**: Original model output with all tags
 
 ## vLLM-Inference
 - VLLM:
