@@ -1,11 +1,12 @@
 import math
-from typing import List, Tuple
+from typing import List, Tuple, Mapping, Optional
 
 import torch
 import torchvision.transforms as T
 from PIL import Image, ImageOps
 from transformers import AutoProcessor, BatchFeature, LlamaTokenizerFast
 from transformers.processing_utils import ProcessorMixin
+from vllm.multimodal.processing import MultiModalDataDict, MultiModalUUIDDict
 from config import IMAGE_SIZE, BASE_SIZE, CROP_MODE, MIN_CROPS, MAX_CROPS, PROMPT, TOKENIZER
 
 def find_closest_aspect_ratio(aspect_ratio, target_ratios, width, height, image_size):
@@ -297,10 +298,11 @@ class DeepseekOCRProcessor(ProcessorMixin):
 
     def __call__(
         self,
-        *,
         prompt: str,
-        images: List,
-        inference_mode: bool = True,
+        mm_data: MultiModalDataDict,
+        hf_processor_mm_kwargs: Mapping[str, object],
+        *,
+        mm_uuids: Optional[MultiModalUUIDDict] = None,
         **kwargs,
     ):
         """
@@ -318,11 +320,12 @@ class DeepseekOCRProcessor(ProcessorMixin):
                 - image_id (int): the id of the image token
                 - num_image_tokens (List[int]): the number of image tokens
         """
+        images = mm_data.get("image", [])
 
         prepare = self.process_one(
             prompt=prompt,
             images=images,
-            inference_mode=inference_mode,
+            inference_mode=True,
         )
 
         return prepare
