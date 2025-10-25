@@ -41,6 +41,20 @@ def get_abs_pos(abs_pos, tgt_size):
 
 
 class MLPBlock(nn.Module):
+    """
+    Simple MLP block with two linear layers and activation.
+
+    Args:
+        embedding_dim (int): Input and output feature dimension.
+        mlp_dim (int): Hidden layer dimension.
+        act (nn.Module): Activation function class (default nn.GELU).
+
+    Forward Args:
+        x (torch.Tensor): Input tensor of shape [B, N, embedding_dim].
+
+    def forward => Returns:
+        torch.Tensor: Output tensor of same shape [B, N, embedding_dim].
+    """
     def __init__(
         self,
         embedding_dim: int,
@@ -359,7 +373,7 @@ def window_unpartition(
         hw (Tuple): original height and width (H, W) before padding.
 
     Returns:
-        x: unpartitioned sequences with [B, H, W, C].
+        torch.Tensor: Reconstructed tensor of shape [B, H, W, C].
     """
     Hp, Wp = pad_hw
     H, W = hw

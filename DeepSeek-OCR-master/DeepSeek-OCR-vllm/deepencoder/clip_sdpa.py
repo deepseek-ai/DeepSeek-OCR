@@ -61,6 +61,16 @@ class LayerNormfp32(torch.nn.LayerNorm):
 
 
 def get_abs_pos(abs_pos, tgt_size):
+        """
+    Resize absolute positional embeddings to target size if necessary.
+
+    Args:
+        abs_pos (torch.Tensor): [1, H, W, C] absolute positional embeddings
+        tgt_size (int): target height/width
+
+    Returns:
+        torch.Tensor: resized absolute positional embeddings [1, tgt_size, tgt_size, C]
+    """
     # abs_pos: L, C
     # tgt_size: M
     # return: M, C
