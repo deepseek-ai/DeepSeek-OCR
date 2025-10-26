@@ -4,6 +4,9 @@ PyMuPDF
 img2pdf
 einops
 easydict
-addict 
+addict
 Pillow
 numpy
+streamlit>=1.28.0
+torch>=2.0.0
+tqdm
