@@ -16,6 +16,10 @@ PRINT_NUM_VIS_TOKENS = False
 SKIP_REPEAT = True
 MODEL_PATH = 'deepseek-ai/DeepSeek-OCR' # change to your model path
 
+# Cross-page table merging settings
+ENABLE_TABLE_MERGE = False  # Set to True to enable cross-page table merging (default: False for backward compatibility)
+TABLE_MERGE_LOG = True      # Log which tables are merged
+
 # TODO: change INPUT_PATH
 # .pdf: run_dpsk_ocr_pdf.py; 
 # .jpg, .png, .jpeg: run_dpsk_ocr_image.py; 
