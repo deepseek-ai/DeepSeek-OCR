@@ -10,3 +10,17 @@ numpy
 streamlit>=1.28.0
 torch>=2.0.0
 tqdm
+
+# Additional output formats
+python-docx>=0.8.11
+openpyxl>=3.0.10
+
+# Office file conversion
+python-pptx>=0.6.21
+
+# Post-processing features
+pyspellchecker>=0.7.2
+language-tool-python>=2.7.1
+
+# Optional dependencies (install as needed)
+# pypandoc  # For advanced DOCX conversion
