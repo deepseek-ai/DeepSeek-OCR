@@ -16,6 +16,11 @@ PRINT_NUM_VIS_TOKENS = False
 SKIP_REPEAT = True
 MODEL_PATH = 'deepseek-ai/DeepSeek-OCR' # change to your model path
 
+# Cross-page table merging
+ENABLE_TABLE_MERGE = False
+ENABLE_HTML_TABLE_MERGE = True
+TABLE_MERGE_LOG = True
+
 # TODO: change INPUT_PATH
 # .pdf: run_dpsk_ocr_pdf.py; 
 # .jpg, .png, .jpeg: run_dpsk_ocr_image.py; 

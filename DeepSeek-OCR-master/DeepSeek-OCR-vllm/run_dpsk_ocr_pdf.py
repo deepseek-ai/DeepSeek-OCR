@@ -14,7 +14,7 @@ os.environ['VLLM_USE_V1'] = '0'
 os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 
 
-from config import MODEL_PATH, INPUT_PATH, OUTPUT_PATH, PROMPT, SKIP_REPEAT, MAX_CONCURRENCY, NUM_WORKERS, CROP_MODE
+from config import MODEL_PATH, INPUT_PATH, OUTPUT_PATH, PROMPT, SKIP_REPEAT, MAX_CONCURRENCY, NUM_WORKERS, CROP_MODE, ENABLE_TABLE_MERGE, TABLE_MERGE_LOG
 
 from PIL import Image, ImageDraw, ImageFont
 import numpy as np
@@ -25,6 +25,7 @@ from vllm.model_executor.models.registry import ModelRegistry
 from vllm import LLM, SamplingParams
 from process.ngram_norepeat import NoRepeatNGramLogitsProcessor
 from process.image_process import DeepseekOCRProcessor
+from process.table_merger import process_pdf_output
 
 ModelRegistry.register_model("DeepseekOCRForCausalLM", DeepseekOCRForCausalLM)
 
@@ -319,11 +320,37 @@ if __name__ == "__main__":
 
         jdx += 1
 
+    if ENABLE_TABLE_MERGE:
+        print(f'{Colors.YELLOW}Cross-page table merging enabled...{Colors.RESET}')
+        try:
+            from process.table_merger import process_pdf_output_with_stats
+            contents_merged, merge_stats = process_pdf_output_with_stats(contents)
+            contents_det_merged, merge_stats_det = process_pdf_output_with_stats(contents_det)
+            
+            if TABLE_MERGE_LOG and merge_stats['merged_count'] > 0:
+                print(f'{Colors.GREEN}✓ Merged {merge_stats["merged_count"]} table group(s) across pages{Colors.RESET}')
+                log_path = output_path + '/table_merge_log.txt'
+                with open(log_path, 'w', encoding='utf-8') as log_file:
+                    log_file.write(f"Table Merge Statistics:\n")
+                    log_file.write(f"- Total tables found: {merge_stats['total_tables']}\n")
+                    log_file.write(f"- Merged groups: {merge_stats['merged_count']}\n")
+                    log_file.write(f"- Merged table details:\n")
+                    for detail in merge_stats['details']:
+                        log_file.write(f"  * Pages {detail['from_page']}-{detail['to_page']}: {detail['table_preview']}\n")
+        except Exception as e:
+            print(f'{Colors.RED}Warning: Table merging failed: {e}{Colors.RESET}')
+            print(f'{Colors.YELLOW}Continuing with original output...{Colors.RESET}')
+            contents_merged = contents
+            contents_det_merged = contents_det
+    else:
+        contents_merged = contents
+        contents_det_merged = contents_det
+
     with open(mmd_det_path, 'w', encoding='utf-8') as afile:
-        afile.write(contents_det)
+        afile.write(contents_det_merged)
 
     with open(mmd_path, 'w', encoding='utf-8') as afile:
-        afile.write(contents)
+        afile.write(contents_merged)
 
 
     pil_to_pdf_img2pdf(draw_images, pdf_out_path)
