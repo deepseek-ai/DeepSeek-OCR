@@ -320,7 +320,6 @@ if __name__ == "__main__":
 
         jdx += 1
 
-    # Apply cross-page table merging (optional, controlled by config)
     if ENABLE_TABLE_MERGE:
         print(f'{Colors.YELLOW}Cross-page table merging enabled...{Colors.RESET}')
         try:
@@ -355,9 +354,4 @@ if __name__ == "__main__":
 
 
     pil_to_pdf_img2pdf(draw_images, pdf_out_path)
-    
-    completion_msg = 'Processing complete!'
-    if ENABLE_TABLE_MERGE:
-        completion_msg += ' (with cross-page table merging)'
-    print(f'{Colors.GREEN}{completion_msg}{Colors.RESET}')
 
