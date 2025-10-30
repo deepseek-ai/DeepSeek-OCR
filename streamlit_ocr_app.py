@@ -13,6 +13,14 @@ import json
 from pathlib import Path
 import tempfile
 import time
+import warnings
+
+# Suprime avisos conhecidos do HuggingFace Transformers
+# O aviso "model of type deepseek_vl_v2 to instantiate model of type DeepseekOCR"
+# é esperado e não afeta o funcionamento do modelo
+warnings.filterwarnings('ignore', message='.*deepseek_vl_v2.*')
+warnings.filterwarnings('ignore', message='.*DeepseekOCR.*')
+os.environ['TRANSFORMERS_VERBOSITY'] = 'error'
 
 # Configuração da página
 st.set_page_config(
@@ -506,4 +514,66 @@ with st.expander("🔧 Informações Técnicas sobre Transforms"):
     5. Feature extraction → SAM + CLIP
     6. Projection → Embedding space
     7. LLM generation → Texto final
+    """)
+
+# Notas técnicas e avisos
+with st.expander("⚠️ Notas Técnicas e Avisos Conhecidos"):
+    st.markdown("""
+    ### Avisos Conhecidos do HuggingFace Transformers
+
+    **Aviso: "model of type deepseek_vl_v2 to instantiate model of type DeepseekOCR"**
+
+    Este aviso pode aparecer no console/terminal ao carregar o modelo:
+
+    ```
+    You are using a model of type deepseek_vl_v2 to instantiate a model
+    of type DeepseekOCR. This is not supported for all configurations of
+    models and can yield errors.
+    ```
+
+    **Por que isso acontece?**
+    - O arquivo `config.json` do modelo no HuggingFace define o tipo como `deepseek_vl_v2`
+    - O código custom Python usa a classe `DeepseekOCR`
+    - O HuggingFace Transformers detecta essa diferença e emite um aviso
+
+    **É um problema?**
+    - ✅ **NÃO** - Este é apenas um aviso informativo
+    - ✅ O modelo carrega e funciona perfeitamente
+    - ✅ A aplicação suprime automaticamente este aviso
+    - ✅ É esperado quando se usa `trust_remote_code=True`
+
+    **Por que usar trust_remote_code=True?**
+    - O DeepSeek-OCR usa código custom não disponível no Transformers padrão
+    - Permite carregar arquiteturas de modelo personalizadas do HuggingFace
+    - É seguro para modelos oficiais como deepseek-ai/DeepSeek-OCR
+
+    ### Configuração CPU vs GPU
+
+    **Esta aplicação está configurada para usar CPU apenas:**
+    - ✅ Compatível com qualquer sistema (não requer GPU)
+    - ✅ Usa `torch.float32` (CPU-optimizado)
+    - ⚠️ Processamento mais lento que GPU
+    - 💡 Recomendado usar modos Tiny/Small para melhor experiência
+
+    **Se você tiver GPU NVIDIA e quiser usá-la:**
+    1. Modifique a linha 75 no código: `device = "cuda"`
+    2. Descomente o código GPU (linhas 82-105)
+    3. Instale: `pip install flash-attn --no-build-isolation`
+    4. Reinicie a aplicação
+
+    ### Dependências Opcionais
+
+    **Flash Attention 2** (GPU apenas):
+    - Melhora significativamente o desempenho em GPU
+    - Não disponível para CPU
+    - Opcional - aplicação funciona sem ela
+
+    **Instalação:**
+    ```bash
+    pip install flash-attn --no-build-isolation
+    ```
+
+    **Requisitos:**
+    - GPU NVIDIA com CUDA 11.6+
+    - 12GB+ VRAM recomendado
     """)

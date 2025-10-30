@@ -233,9 +233,32 @@ mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5)
 - ⚠️ Flash Attention requer GPU NVIDIA com CUDA 11.6+
 - 🔧 Se não tiver GPU, a aplicação funciona normalmente em CPU
 
-**Erro: "model of type deepseek_vl_v2 to instantiate model of type DeepseekOCR"**
-- ℹ️ Este é apenas um aviso, não um erro crítico
-- ✅ O modelo será carregado corretamente
+**Aviso: "model of type deepseek_vl_v2 to instantiate model of type DeepseekOCR"**
+
+Este aviso aparece no console/terminal durante o carregamento do modelo:
+
+```
+You are using a model of type deepseek_vl_v2 to instantiate a model
+of type DeepseekOCR. This is not supported for all configurations of
+models and can yield errors.
+```
+
+**Entendendo o aviso:**
+- ℹ️ **É apenas um aviso informativo**, não é um erro
+- ✅ O modelo carrega e funciona perfeitamente
+- 🔧 Ocorre porque o `config.json` usa `deepseek_vl_v2` mas o código Python usa `DeepseekOCR`
+- ✅ **A aplicação suprime automaticamente este aviso**
+- ✅ É esperado e normal quando se usa `trust_remote_code=True`
+
+**Por que acontece?**
+- O DeepSeek-OCR usa código custom (trust_remote_code=True)
+- O HuggingFace detecta diferença entre config.json e código Python
+- Emite aviso preventivo, mas o modelo funciona normalmente
+
+**Solução:**
+- Nenhuma ação necessária
+- A aplicação já está configurada para suprimir este aviso
+- Se ainda ver o aviso, pode ignorá-lo com segurança
 
 **Outros erros de carregamento:**
 - Verifique versão do transformers: `pip install transformers>=4.46.3`
