@@ -1,0 +1,9 @@
+streamlit>=1.28.0
+torch>=2.0.0
+transformers>=4.46.3
+tokenizers>=0.20.3
+Pillow>=10.0.0
+numpy>=1.24.0
+einops
+easydict
+addict
