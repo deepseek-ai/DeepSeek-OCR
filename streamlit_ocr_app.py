@@ -80,25 +80,44 @@ def load_model():
             )
 
             if device == "cuda":
-                model = AutoModel.from_pretrained(
-                    model_name,
-                    _attn_implementation='flash_attention_2',
-                    trust_remote_code=True,
-                    use_safetensors=True
-                )
+                # Tenta carregar com flash_attention_2 primeiro
+                try:
+                    st.info("🔄 Tentando carregar modelo com Flash Attention 2...")
+                    model = AutoModel.from_pretrained(
+                        model_name,
+                        _attn_implementation='flash_attention_2',
+                        trust_remote_code=True,
+                        use_safetensors=True
+                    )
+                    st.success("✅ Modelo carregado com Flash Attention 2!")
+                except Exception as flash_error:
+                    # Fallback: carrega sem flash_attention_2
+                    st.warning(f"⚠️ Flash Attention 2 não disponível: {str(flash_error)}")
+                    st.info("🔄 Carregando modelo com atenção padrão (eager)...")
+                    model = AutoModel.from_pretrained(
+                        model_name,
+                        _attn_implementation='eager',
+                        trust_remote_code=True,
+                        use_safetensors=True
+                    )
+                    st.success("✅ Modelo carregado com atenção padrão!")
+
                 model = model.eval().cuda().to(torch.bfloat16)
             else:
+                st.info("🔄 Carregando modelo para CPU...")
                 model = AutoModel.from_pretrained(
                     model_name,
                     trust_remote_code=True,
                     use_safetensors=True
                 )
                 model = model.eval()
+                st.success("✅ Modelo carregado para CPU!")
 
             return model, tokenizer, device
 
         except Exception as e:
             st.error(f"❌ Erro ao carregar modelo: {str(e)}")
+            st.error("💡 Dica: Instale flash-attn com: pip install flash-attn --no-build-isolation")
             return None, None, None
 
 # Modos de resolução predefinidos
@@ -239,7 +258,7 @@ with col1:
     if uploaded_file is not None:
         # Exibe a imagem
         image = Image.open(uploaded_file).convert('RGB')
-        st.image(image, caption="Imagem carregada", use_container_width=True)
+        st.image(image, caption="Imagem carregada", width='stretch')
 
         # Informações da imagem
         width, height = image.size
@@ -281,7 +300,7 @@ with col2:
 
 # Botão de processamento
 st.markdown("---")
-process_button = st.button("🚀 Processar Imagem com OCR", use_container_width=True)
+process_button = st.button("🚀 Processar Imagem com OCR", width='stretch')
 
 if process_button and uploaded_file is not None:
 

@@ -49,7 +49,22 @@ pip install -r DeepSeek-OCR-master/DeepSeek-OCR-hf/requirements.txt
 pip install streamlit
 ```
 
-### 3. Baixar o Modelo
+### 3. Flash Attention 2 (Opcional - Recomendado para GPU)
+
+Flash Attention 2 melhora significativamente o desempenho em GPUs NVIDIA.
+
+```bash
+# Instalar Flash Attention 2 (requer GPU NVIDIA e CUDA)
+pip install flash-attn --no-build-isolation
+```
+
+**Importante:**
+- ✅ **Com Flash Attention 2**: Melhor desempenho e menor uso de memória
+- ✅ **Sem Flash Attention 2**: A aplicação funcionará normalmente com atenção padrão (eager)
+- ⚠️ A aplicação detecta automaticamente e usa o melhor método disponível
+- 💡 Flash Attention 2 requer GPU NVIDIA com CUDA 11.6+
+
+### 4. Baixar o Modelo
 
 O modelo será baixado automaticamente do HuggingFace na primeira execução:
 - Modelo: `deepseek-ai/DeepSeek-OCR`
@@ -211,9 +226,21 @@ mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5)
 - Use modo Tiny para testes
 
 ### Erro ao carregar modelo
+
+**Erro: "flash_attn seems to be not installed"**
+- ✅ **Solução Automática**: A aplicação detecta e usa atenção padrão automaticamente
+- 💡 Para melhor desempenho (opcional): `pip install flash-attn --no-build-isolation`
+- ⚠️ Flash Attention requer GPU NVIDIA com CUDA 11.6+
+- 🔧 Se não tiver GPU, a aplicação funciona normalmente em CPU
+
+**Erro: "model of type deepseek_vl_v2 to instantiate model of type DeepseekOCR"**
+- ℹ️ Este é apenas um aviso, não um erro crítico
+- ✅ O modelo será carregado corretamente
+
+**Outros erros de carregamento:**
 - Verifique versão do transformers: `pip install transformers>=4.46.3`
-- Instale flash-attention-2 se usar GPU
-- Verifique compatibilidade CUDA
+- Verifique conexão com internet
+- Verifique compatibilidade CUDA se usar GPU
 
 ## Exemplos de Uso
 

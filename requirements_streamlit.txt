@@ -1,3 +1,4 @@
+# Core dependencies for DeepSeek OCR Streamlit App
 streamlit>=1.28.0
 torch>=2.0.0
 transformers>=4.46.3
@@ -7,3 +8,10 @@ numpy>=1.24.0
 einops
 easydict
 addict
+
+# Optional: Flash Attention 2 para melhor desempenho (requer GPU NVIDIA)
+# Instale separadamente com:
+# pip install flash-attn --no-build-isolation
+#
+# Se não tiver flash-attn, a aplicação usará atenção padrão (eager) automaticamente
+# flash-attn>=2.0.0
