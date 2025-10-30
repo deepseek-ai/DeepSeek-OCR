@@ -71,53 +71,30 @@ def load_model():
         try:
             model_name = 'deepseek-ai/DeepSeek-OCR'
 
-            # Verifica se CUDA está disponível
-            device = "cuda" if torch.cuda.is_available() else "cpu"
+            # FORÇA O USO DE CPU (configurado para esta atividade)
+            device = "cpu"
+            st.info("🖥️ Usando CPU para processamento (configurado)")
 
             tokenizer = AutoTokenizer.from_pretrained(
                 model_name,
                 trust_remote_code=True
             )
 
-            if device == "cuda":
-                # Tenta carregar com flash_attention_2 primeiro
-                try:
-                    st.info("🔄 Tentando carregar modelo com Flash Attention 2...")
-                    model = AutoModel.from_pretrained(
-                        model_name,
-                        _attn_implementation='flash_attention_2',
-                        trust_remote_code=True,
-                        use_safetensors=True
-                    )
-                    st.success("✅ Modelo carregado com Flash Attention 2!")
-                except Exception as flash_error:
-                    # Fallback: carrega sem flash_attention_2
-                    st.warning(f"⚠️ Flash Attention 2 não disponível: {str(flash_error)}")
-                    st.info("🔄 Carregando modelo com atenção padrão (eager)...")
-                    model = AutoModel.from_pretrained(
-                        model_name,
-                        _attn_implementation='eager',
-                        trust_remote_code=True,
-                        use_safetensors=True
-                    )
-                    st.success("✅ Modelo carregado com atenção padrão!")
-
-                model = model.eval().cuda().to(torch.bfloat16)
-            else:
-                st.info("🔄 Carregando modelo para CPU...")
-                model = AutoModel.from_pretrained(
-                    model_name,
-                    trust_remote_code=True,
-                    use_safetensors=True
-                )
-                model = model.eval()
-                st.success("✅ Modelo carregado para CPU!")
+            st.info("🔄 Carregando modelo para CPU...")
+            model = AutoModel.from_pretrained(
+                model_name,
+                trust_remote_code=True,
+                use_safetensors=True,
+                torch_dtype=torch.float32  # Usa float32 para CPU
+            )
+            model = model.eval()
+            st.success("✅ Modelo carregado para CPU com sucesso!")
 
             return model, tokenizer, device
 
         except Exception as e:
             st.error(f"❌ Erro ao carregar modelo: {str(e)}")
-            st.error("💡 Dica: Instale flash-attn com: pip install flash-attn --no-build-isolation")
+            st.exception(e)
             return None, None, None
 
 # Modos de resolução predefinidos
@@ -235,13 +212,8 @@ save_results = st.sidebar.checkbox(
 
 # Mostrar informações do sistema
 st.sidebar.subheader("💻 Informações do Sistema")
-device_info = "GPU (CUDA)" if torch.cuda.is_available() else "CPU"
-st.sidebar.info(f"**Dispositivo:** {device_info}")
-
-if torch.cuda.is_available():
-    gpu_name = torch.cuda.get_device_name(0)
-    gpu_memory = torch.cuda.get_device_properties(0).total_memory / 1024**3
-    st.sidebar.info(f"**GPU:** {gpu_name}\n\n**Memória:** {gpu_memory:.1f} GB")
+st.sidebar.info("**Dispositivo:** 🖥️ CPU (Forçado)")
+st.sidebar.warning("⚠️ Configurado para usar CPU apenas\n\nO processamento será mais lento, mas funcional.")
 
 # Área principal
 col1, col2 = st.columns([1, 1])
