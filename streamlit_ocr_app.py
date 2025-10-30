@@ -71,30 +71,91 @@ st.markdown("""
 st.markdown('<h1 class="main-header">🔍 DeepSeek OCR Application</h1>', unsafe_allow_html=True)
 st.markdown("### Upload de imagens e extração de texto com IA")
 
+# Helper function para limpar cache corrompido
+def clear_model_cache(model_name):
+    """Limpa o cache do modelo corrompido"""
+    from pathlib import Path
+    import shutil
+
+    cache_dir = Path.home() / ".cache" / "huggingface" / "hub"
+
+    if cache_dir.exists():
+        # Encontra diretórios do modelo
+        model_dirs = list(cache_dir.glob("*deepseek*"))
+        for model_dir in model_dirs:
+            try:
+                st.warning(f"🗑️ Removendo cache corrompido: {model_dir.name}")
+                shutil.rmtree(model_dir)
+                st.success(f"✅ Cache removido: {model_dir.name}")
+            except Exception as e:
+                st.error(f"❌ Erro ao remover: {e}")
+    return len(model_dirs) if cache_dir.exists() else 0
+
 # Cache do modelo para não recarregar a cada interação
 @st.cache_resource
-def load_model():
+def load_model(force_download=False):
     """Carrega o modelo DeepSeek OCR"""
     with st.spinner("🔄 Carregando modelo DeepSeek OCR... (isso pode levar alguns minutos)"):
+        model_name = 'deepseek-ai/DeepSeek-OCR'
+
+        # FORÇA O USO DE CPU (configurado para esta atividade)
+        device = "cpu"
+        st.info("🖥️ Usando CPU para processamento (configurado)")
+
         try:
-            model_name = 'deepseek-ai/DeepSeek-OCR'
-
-            # FORÇA O USO DE CPU (configurado para esta atividade)
-            device = "cpu"
-            st.info("🖥️ Usando CPU para processamento (configurado)")
-
+            # Carrega tokenizer
             tokenizer = AutoTokenizer.from_pretrained(
                 model_name,
-                trust_remote_code=True
+                trust_remote_code=True,
+                force_download=force_download
             )
 
+            # Tenta carregar modelo com safetensors
             st.info("🔄 Carregando modelo para CPU...")
-            model = AutoModel.from_pretrained(
-                model_name,
-                trust_remote_code=True,
-                use_safetensors=True,
-                torch_dtype=torch.float32  # Usa float32 para CPU
-            )
+            try:
+                model = AutoModel.from_pretrained(
+                    model_name,
+                    trust_remote_code=True,
+                    use_safetensors=True,
+                    torch_dtype=torch.float32,
+                    force_download=force_download
+                )
+            except Exception as safetensor_error:
+                error_msg = str(safetensor_error)
+
+                # Detecta arquivo corrompido
+                if "SafetensorError" in error_msg or "EOF while parsing" in error_msg or "invalid JSON" in error_msg:
+                    st.error("⚠️ **Arquivo do modelo corrompido detectado!**")
+                    st.warning("🔄 Tentando limpar cache e baixar novamente...")
+
+                    # Limpa cache
+                    cleared = clear_model_cache(model_name)
+                    if cleared > 0:
+                        st.info(f"✅ {cleared} cache(s) removido(s). Baixando modelo novamente...")
+
+                        # Tenta baixar novamente
+                        model = AutoModel.from_pretrained(
+                            model_name,
+                            trust_remote_code=True,
+                            use_safetensors=True,
+                            torch_dtype=torch.float32,
+                            force_download=True
+                        )
+                    else:
+                        st.error("❌ Não foi possível limpar o cache automaticamente.")
+                        st.info("🔄 Tentando carregar sem safetensors...")
+
+                        # Fallback: tenta sem safetensors
+                        model = AutoModel.from_pretrained(
+                            model_name,
+                            trust_remote_code=True,
+                            use_safetensors=False,
+                            torch_dtype=torch.float32,
+                            force_download=True
+                        )
+                else:
+                    raise safetensor_error
+
             model = model.eval()
             st.success("✅ Modelo carregado para CPU com sucesso!")
 
@@ -102,6 +163,52 @@ def load_model():
 
         except Exception as e:
             st.error(f"❌ Erro ao carregar modelo: {str(e)}")
+
+            # Instruções de recuperação
+            st.markdown("""
+            ### 🔧 Como Resolver Manualmente
+
+            **Opção 1: Limpar Cache Manualmente (Recomendado)**
+
+            No **Windows**:
+            ```
+            # Abra o PowerShell e execute:
+            Remove-Item -Recurse -Force "$env:USERPROFILE\\.cache\\huggingface\\hub\\*deepseek*"
+            ```
+
+            Ou navegue até:
+            ```
+            C:\\Users\\<seu_usuario>\\.cache\\huggingface\\hub\\
+            ```
+            E delete todas as pastas que contenham "deepseek" no nome.
+
+            **No Linux/Mac**:
+            ```bash
+            rm -rf ~/.cache/huggingface/hub/*deepseek*
+            ```
+
+            **Opção 2: Usar Variável de Ambiente**
+
+            Antes de executar o Streamlit:
+            ```bash
+            # Windows PowerShell
+            $env:TRANSFORMERS_CACHE = "C:\\temp\\hf_cache"
+            streamlit run streamlit_ocr_app.py
+
+            # Linux/Mac
+            export TRANSFORMERS_CACHE=/tmp/hf_cache
+            streamlit run streamlit_ocr_app.py
+            ```
+
+            **Opção 3: Reinstalar do Zero**
+            ```bash
+            pip uninstall transformers tokenizers -y
+            pip install transformers>=4.46.3 tokenizers>=0.20.3
+            ```
+
+            Depois reinicie a aplicação Streamlit.
+            """)
+
             st.exception(e)
             return None, None, None
 
@@ -546,6 +653,52 @@ with st.expander("⚠️ Notas Técnicas e Avisos Conhecidos"):
     - O DeepSeek-OCR usa código custom não disponível no Transformers padrão
     - Permite carregar arquiteturas de modelo personalizadas do HuggingFace
     - É seguro para modelos oficiais como deepseek-ai/DeepSeek-OCR
+
+    ---
+
+    ### Erro: SafetensorError (Arquivo Corrompido)
+
+    **Sintoma:**
+    ```
+    SafetensorError: Error while deserializing header: invalid JSON in header:
+    EOF while parsing a value at line 1 column 0
+    ```
+
+    **Causa:**
+    - Arquivo do modelo corrompido no cache do HuggingFace
+    - Download interrompido ou incompleto
+    - Problema de conexão durante o download inicial
+
+    **✅ Solução Automática (Implementada):**
+
+    A aplicação detecta e resolve automaticamente:
+    1. ✅ Identifica erro SafetensorError
+    2. ✅ Remove cache corrompido automaticamente
+    3. ✅ Baixa modelo novamente (completo)
+    4. ✅ Fallback para download sem safetensors se necessário
+
+    **🔧 Solução Manual (Windows):**
+
+    Se a automática falhar, abra PowerShell:
+    ```powershell
+    Remove-Item -Recurse -Force "$env:USERPROFILE\\.cache\\huggingface\\hub\\*deepseek*"
+    ```
+
+    Ou navegue até:
+    `C:\\Users\\<usuario>\\.cache\\huggingface\\hub\\`
+    e delete pastas com "deepseek" no nome.
+
+    **🔧 Solução Manual (Linux/Mac):**
+    ```bash
+    rm -rf ~/.cache/huggingface/hub/*deepseek*
+    ```
+
+    **💡 Prevenção:**
+    - Mantenha conexão estável durante download
+    - Aguarde download completo (~10GB)
+    - Não interrompa processo de carregamento
+
+    ---
 
     ### Configuração CPU vs GPU
 

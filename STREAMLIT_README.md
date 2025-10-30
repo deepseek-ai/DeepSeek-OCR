@@ -220,6 +220,65 @@ mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5)
 - Configure token HuggingFace se necessário
 - Tente baixar modelo manualmente
 
+### Erro: "SafetensorError: EOF while parsing" ou "invalid JSON in header"
+
+**Erro completo:**
+```
+SafetensorError: Error while deserializing header: invalid JSON in header:
+EOF while parsing a value at line 1 column 0
+```
+
+**Causa:**
+- Arquivo do modelo corrompido no cache do HuggingFace
+- Download interrompido ou incompleto
+- Problema de conexão durante o download
+
+**✅ Solução Automática (Recomendado):**
+
+A aplicação detecta automaticamente este erro e:
+1. Identifica arquivo corrompido
+2. Remove cache automaticamente
+3. Baixa o modelo novamente
+4. Se falhar, tenta sem safetensors como fallback
+
+**🔧 Solução Manual (se automática falhar):**
+
+**No Windows:**
+
+Abra o PowerShell como administrador e execute:
+```powershell
+Remove-Item -Recurse -Force "$env:USERPROFILE\.cache\huggingface\hub\*deepseek*"
+```
+
+Ou navegue manualmente até:
+```
+C:\Users\<seu_usuario>\.cache\huggingface\hub\
+```
+E delete todas as pastas que contenham "deepseek" no nome.
+
+**No Linux/Mac:**
+```bash
+rm -rf ~/.cache/huggingface/hub/*deepseek*
+```
+
+**Depois:**
+1. Reinicie a aplicação Streamlit
+2. O modelo será baixado novamente (limpo)
+3. Aguarde o download completo (~10GB)
+
+**🎯 Prevenção:**
+
+Para evitar este erro:
+- Mantenha conexão estável durante o primeiro download
+- Use cache em disco com espaço suficiente (20GB+)
+- Não interrompa o download do modelo
+- Se download for lento, use variável de ambiente:
+  ```bash
+  # Windows PowerShell
+  $env:HF_HUB_DISABLE_SYMLINKS = "1"
+  streamlit run streamlit_ocr_app.py
+  ```
+
 ### Aplicação lenta
 - Use GPU se disponível
 - Reduza resolução
