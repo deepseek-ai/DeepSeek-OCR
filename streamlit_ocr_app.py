@@ -416,7 +416,7 @@ if process_button and uploaded_file is not None:
                 "Max Crops": max_crops if crop_mode else "N/A",
                 "Test Compress": test_compress,
                 "Prompt": prompt_text,
-                "Device": device_info
+                "Device": "CPU (Forçado)"
             }
             st.json(config_info)
 
