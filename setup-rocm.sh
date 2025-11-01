@@ -35,7 +35,7 @@ echo ""
 # --- Section 2: Dependencies ---
 echo "--- 2. Dependencies ---"
 echo "Installing Python dependencies into the virtual environment..."
-~/.venv/bin/pip3 install -r DeepSeek-OCR/requirements.txt
+pip3 install -r DeepSeek-OCR/requirements.txt
 echo ""
 echo "----------------------------------------"
 echo ""

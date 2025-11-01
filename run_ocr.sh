@@ -5,7 +5,8 @@
 # ==============================================================================
 #
 # This script downloads a test image and runs the ROCm-compatible
-# DeepSeek-OCR script using the python interpreter from the virtual environment.
+# DeepSeek-OCR script using the python interpreter from the activated
+# virtual environment.
 #
 # ==============================================================================
 
@@ -22,7 +23,7 @@ echo ""
 
 # --- Section 2: Run OCR ---
 echo "--- 2. Run OCR ---"
-~/.venv/bin/python3 run_ocr_amd.py test_image.jpeg
+python3 run_ocr_amd.py test_image.jpeg
 echo ""
 echo "----------------------------------------"
 echo ""
