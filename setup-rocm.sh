@@ -8,7 +8,7 @@
 # AMD ROCm-enabled system.
 #
 # NOTE: This script assumes you have a compatible ROCm-enabled PyTorch
-# installed.
+# installed in your virtual environment.
 #
 # ==============================================================================
 
@@ -34,8 +34,8 @@ echo ""
 
 # --- Section 2: Dependencies ---
 echo "--- 2. Dependencies ---"
-echo "Installing Python dependencies..."
-pip3 install -r DeepSeek-OCR/requirements.txt
+echo "Installing Python dependencies into the virtual environment..."
+~/.venv/bin/pip3 install -r DeepSeek-OCR/requirements.txt
 echo ""
 echo "----------------------------------------"
 echo ""
