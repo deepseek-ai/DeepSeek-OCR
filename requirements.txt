@@ -1,9 +1,32 @@
+# Install order (see README ## Install): torch stack -> vllm whl -> this file -> flash-attn.
+# torch 2.6.0 + cu118 pairs with xformers==0.0.29.post2 (pulled in by vllm==0.8.5+cu118).
+# xformers sdist imports torch at build time; install torch FIRST or
+# `pip install vllm...whl` fails with `ModuleNotFoundError: No module named 'torch'`
+# (pip build isolation hides site torch; fallback: --no-build-isolation). See issue #296.
+# torch / torchvision / torchaudio / vllm / flash-attn are intentionally NOT pinned
+# here; install them per README (cu118 index / whl / --no-build-isolation).
+# Reference (do NOT uncomment blindly; cu118 needs the README --index-url):
+# torch==2.6.0
+# torchvision==0.21.0
+# torchaudio==2.6.0
+# NOTE (issue #302): keep transformers in [4.46.3, 4.48.0).
+# The HF remote modeling code (trust_remote_code, pulled by
+# DeepSeek-OCR-master/DeepSeek-OCR-hf/run_dpsk_ocr.py) does
+# `from transformers.models.llama.modeling_llama import LlamaFlashAttention2`,
+# and that class was removed in transformers 4.48.0 (verified: present in
+# 4.46.3/4.47.x, absent in 4.48.0/4.49.0). Newer versions fail with
+# "cannot import name 'LlamaFlashAttention2'". Do not loosen this pin
+# without also patching the remote modeling code with a fallback such as:
+#   try:
+#       from transformers.models.llama.modeling_llama import LlamaFlashAttention2
+#   except ImportError:  # transformers >= 4.48
+#       from transformers.models.llama.modeling_llama import LlamaAttention as LlamaFlashAttention2
 transformers==4.46.3
 tokenizers==0.20.3
-PyMuPDF
-img2pdf
-einops
-easydict
-addict 
-Pillow
-numpy
+PyMuPDF>=1.23.8
+img2pdf>=0.5.0
+einops>=0.7.0
+easydict>=1.9
+addict>=2.4.0
+Pillow>=10.0.0
+numpy>=1.24.0
