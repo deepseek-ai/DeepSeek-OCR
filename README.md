@@ -86,6 +86,9 @@ pip install -r requirements.txt
 pip install flash-attn==2.7.3 --no-build-isolation
 ```
 **Note:** if you want vLLM and transformers codes to run in the same environment, you don't need to worry about this installation error like: vllm 0.8.5+cu118 requires transformers>=4.51.1
+**Note:** install in the exact order above — torch first, then the vLLM whl — otherwise the xformers sdist pulled in by vLLM fails its build with `ModuleNotFoundError: No module named 'torch'` (see issue #296).
+**Note (transformers version pin):** the `transformers` inference path requires `transformers==4.46.3` + `tokenizers==0.20.3` exactly as pinned in `requirements.txt` — the custom `modeling_deepseekocr.py` imports `LlamaFlashAttention2`, which was removed in newer transformers releases (`ImportError`, see issue #302). Newer/upstream vLLM pulls `transformers>=4.51.1`, which conflicts with that pin (see issue #307) — if you need both paths, use two separate conda envs.
+**Note (platform):** the pinned `vllm-0.8.5+cu118-...-manylinux1_x86_64.whl` is Linux x86_64 + CUDA only. It cannot install on macOS (`is not a supported wheel on this platform`, see issue #319) and there is no CPU/MPS support — a CUDA GPU is required (`flash-attn`, `.cuda()`, `cu118` wheels throughout). Windows users: use WSL2 with CUDA (see community guide in issue #341); macOS / Ascend NPU (see issue #316) / serverless CPU (see issue #315) are not supported by this install flow.
 
 ## vLLM-Inference
 - VLLM:
@@ -197,6 +200,17 @@ The current open-source model supports the following modes:
 - Dynamic resolution
   - Gundam: n×640×640 + 1×1024×1024 ✅
 
+Each mode is just a `(base_size, image_size, crop_mode)` triple for `model.infer(...)` (transformers path) — see the mapping in `DeepSeek-OCR-master/DeepSeek-OCR-hf/run_dpsk_ocr.py`:
+| Mode | `base_size` | `image_size` | `crop_mode` |
+|------|-------------|--------------|-------------|
+| Tiny | 512 | 512 | False |
+| Small | 640 | 640 | False |
+| Base | 1024 | 1024 | False |
+| Large | 1280 | 1280 | False |
+| Gundam (default) | 1024 | 640 | True |
+
+On the pinned vLLM path (`DeepSeek-OCR-master/DeepSeek-OCR-vllm/`), set the same triple via `BASE_SIZE` / `IMAGE_SIZE` / `CROP_MODE` in `config.py` (see issues #300, #293). Upstream vLLM (`vllm.model_executor.models.deepseek_ocr`) does not expose these knobs per-request — custom modes there need a monkeypatch (see issue #293).
+
 ## Prompts examples
 ```python
 # document: <image>\n<|grounding|>Convert the document to markdown.
@@ -222,8 +236,15 @@ The current open-source model supports the following modes:
 </table>
 
 
-## Acknowledgement
+## Limitations
+- Requires a CUDA GPU (Linux x86_64; see platform note under [Install](#install)). CPU / macOS / MPS are not supported.
+- Like all generative vision-language models, output may contain hallucinations or generation loops on some inputs (e.g. dense tables, code screenshots, certain GPUs — see issues #312, #320, #339); verify critical results.
+- Training-data and benchmark details live in the [paper](https://arxiv.org/abs/2510.18234); evaluation protocol questions are tracked in issues #301, #345.
 
+## License
+MIT — see [LICENSE](LICENSE).
+
+## Acknowledgement
 We would like to thank [Vary](https://github.com/Ucas-HaoranWei/Vary/), [GOT-OCR2.0](https://github.com/Ucas-HaoranWei/GOT-OCR2.0/), [MinerU](https://github.com/opendatalab/MinerU), [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR), [OneChart](https://github.com/LingyvKong/OneChart), [Slow Perception](https://github.com/Ucas-HaoranWei/Slow-Perception) for their valuable models and ideas.
 
 We also appreciate the benchmarks: [Fox](https://github.com/ucaslcl/Fox), [OminiDocBench](https://github.com/opendatalab/OmniDocBench).

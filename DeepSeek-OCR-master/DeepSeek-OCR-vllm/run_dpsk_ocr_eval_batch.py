@@ -1,3 +1,17 @@
+import sys as _sys
+if _sys.platform == 'darwin':
+    # Upstream vLLM supports Linux + CUDA/ROCm GPUs only; it can neither be
+    # installed nor run on macOS (Intel or Apple Silicon, see issue #319).
+    # See check_vllm_platform_support() in config.py. On macOS use the
+    # transformers-based entry DeepSeek-OCR-hf/run_dpsk_ocr.py instead.
+    # Upstream requirements: https://docs.vllm.ai/en/latest/getting_started/installation/
+    raise RuntimeError(
+        '[DeepSeek-OCR-vllm] macOS is not supported by upstream vLLM '
+        '(Linux + CUDA/ROCm GPUs only). Run this pipeline on a Linux + '
+        'NVIDIA GPU machine, or on macOS use '
+        'DeepSeek-OCR-hf/run_dpsk_ocr.py (no vLLM needed).'
+    )
+
 import os
 import re
 from tqdm import tqdm
